@@ -1,151 +1,89 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#101827">
-  <meta name="description" content="가상 주가와 가상 자산으로 연습하는 동아리 모의주식 거래소">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>동아리 모의주식 거래소</title>
-  <style>
-    :root{color-scheme:dark;--bg:#0b1120;--panel:#141e30;--panel2:#1b2940;--text:#edf3ff;--muted:#9aabc5;--line:#2a3a54;--accent:#71a7ff;--green:#52d6a0;--red:#ff7885}
-    *{box-sizing:border-box} body{margin:0;background:radial-gradient(1000px 500px at 10% -10%,#1d3151 0%,transparent 65%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    button,input,select{font:inherit} button{cursor:pointer;border:0;border-radius:12px;padding:11px 14px;font-weight:700;color:#071322;background:var(--accent)} button:disabled{opacity:.4;cursor:not-allowed}
-    .wrap{max-width:1120px;margin:auto;padding:20px 16px 48px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#8cc0ff,#66e0b3);display:grid;place-items:center;color:#071322;font-size:22px;font-weight:900}.eyebrow{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.title{font-size:clamp(22px,4vw,30px);font-weight:850;letter-spacing:-.04em}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.danger{background:#4a2632;color:#ffdfe3;border:1px solid #70404b}
-    .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}.card{background:linear-gradient(180deg,rgba(25,38,59,.96),rgba(17,27,44,.98));border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}.summary{grid-column:span 4}.chart-card{grid-column:span 8}.trade-card{grid-column:span 4}.holdings-card{grid-column:span 7}.history-card{grid-column:span 5}.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.card h2{font-size:16px;margin:0}.muted{color:var(--muted)}.big{font-size:clamp(24px,4vw,34px);font-weight:850;letter-spacing:-.04em;margin:5px 0}.positive{color:var(--green)}.negative{color:var(--red)}.small{font-size:12px;color:var(--muted)}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.stat{padding:12px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:13px}.stat strong{display:block;font-size:17px;margin-top:4px}
-    .stock-picker{display:flex;gap:8px;flex-wrap:wrap}.stock-chip{padding:8px 12px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);border-radius:10px}.stock-chip.active{background:#233c60;color:#fff;border-color:#578bd4}.price-line{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:10px 0}.price{font-size:28px;font-weight:850}.chart-wrap{height:235px;position:relative;margin-top:12px}.chart-wrap svg{width:100%;height:100%;overflow:visible}.chart-foot{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--muted)}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.field{margin-bottom:13px}input,select{width:100%;padding:12px;border-radius:11px;border:1px solid var(--line);background:#0d1728;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--accent)}.trade-buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px}.buy{background:var(--green)}.sell{background:#ff9ba4}.message{min-height:22px;margin-top:10px;font-size:13px;color:var(--muted)}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{text-align:right;padding:11px 7px;border-bottom:1px solid var(--line);font-size:13px}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-weight:600}.empty{text-align:center!important;padding:22px;color:var(--muted)}.history-list{display:grid;gap:9px;max-height:310px;overflow:auto}.history-item{display:flex;justify-content:space-between;gap:10px;padding:10px 11px;background:rgba(255,255,255,.035);border-radius:11px}.history-item strong{display:block;font-size:13px}.history-item span{font-size:12px;color:var(--muted)}.footer{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#e7f1ff;color:#0b1728;padding:12px 16px;border-radius:12px;box-shadow:0 10px 35px #0006;display:none;max-width:calc(100% - 32px);z-index:5}
-    @media(max-width:780px){.summary{grid-column:span 6}.chart-card,.trade-card,.holdings-card,.history-card{grid-column:span 12}.chart-card{order:0}.summary{order:1}.trade-card{order:2}.holdings-card{order:3}.history-card{order:4}.wrap{padding:14px 11px 32px}.card{padding:15px}.chart-wrap{height:210px}}
-    @media(max-width:420px){.summary{grid-column:span 12}.stats{grid-template-columns:1fr 1fr}.top-actions button{padding:9px 11px;font-size:13px}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101827">
+<meta name="description" content="동아리 가상 주식 거래소">
+<link rel="manifest" href="manifest.json">
+<title>동아리 모의주식 거래소</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d30;--panel2:#17243a;--line:#283750;--text:#eef4ff;--muted:#93a4bd;--green:#38e0b2;--red:#ff7185;--blue:#6e9eff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101b2d,#080e18 70%);color:var(--text);font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:12px 14px;font-weight:750}header{padding:20px 16px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1100px;margin:auto}.brand{display:flex;align-items:center;gap:10px}.logo{display:grid;place-items:center;background:linear-gradient(135deg,#38e0b2,#5a9cff);color:#071321;border-radius:14px;width:42px;height:42px;font-weight:950;font-size:19px}.eyebrow{font-size:10px;letter-spacing:1.6px;color:var(--muted)}h1{font-size:20px;margin:3px 0 0}.pill{font-size:11px;border:1px solid var(--line);border-radius:99px;padding:7px 10px;color:var(--muted)}main{max-width:1100px;margin:auto;padding:16px;display:grid;gap:14px}.grid{display:grid;grid-template-columns: minmax(250px,.8fr) minmax(0,1.4fr);gap:14px}.card{background:linear-gradient(145deg,rgba(20,32,51,.97),rgba(15,24,39,.97));border:1px solid var(--line);border-radius:20px;padding:17px;min-width:0}.label{font-size:12px;color:var(--muted);font-weight:700}.big{font-size:30px;font-weight:850;letter-spacing:-1px;margin:8px 0}.muted{color:var(--muted)}.positive{color:var(--green)}.negative{color:var(--red)}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.stat{padding:12px;background:#0d1727;border-radius:13px}.stat strong{display:block;font-size:16px;margin-top:6px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}.section-title h2{font-size:16px;margin:0}.stocks{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.stock-btn{background:#0d1727;color:#bac8dc;border:1px solid var(--line);padding:9px 11px;font-size:12px}.stock-btn.active{background:#163c3b;border-color:var(--green);color:#eafff8}.price-line{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}.price{font-size:26px;font-weight:850}.chart-wrap{height:210px;margin-top:10px;position:relative}canvas{width:100%;height:100%;display:block}.chart-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}.trade-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px;margin:12px 0}.field label{font-size:12px;color:var(--muted)}input,select{width:100%;background:#0b1423;color:var(--text);border:1px solid var(--line);border-radius:11px;padding:12px;outline:none}input:focus,select:focus{border-color:var(--blue)}.buy{background:var(--green);color:#062018}.sell{background:var(--red);color:#2b0810}.wide{width:100%}.holding-row,.rank-row,.history-row{display:grid;grid-template-columns:1.4fr .8fr .9fr;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}.holding-row:last-child,.rank-row:last-child,.history-row:last-child{border-bottom:0}.rank-row{grid-template-columns:32px 1.4fr .9fr .8fr}.rank-num{width:26px;height:26px;border-radius:8px;background:#22324b;display:grid;place-items:center;font-weight:800}.empty{padding:18px 0;color:var(--muted);font-size:13px}.notice{background:#17243a;border:1px solid #304665;padding:12px;border-radius:12px;color:#c8d7ee;font-size:12px;line-height:1.55}.small{font-size:11px;color:var(--muted);line-height:1.55}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.reset{background:transparent;color:var(--muted);border:1px solid var(--line);font-size:11px;padding:8px 10px}footer{max-width:1100px;margin:auto;padding:0 16px 24px;color:var(--muted);font-size:11px;line-height:1.6}
+@media(max-width:720px){.grid,.trade-grid,.two-col{grid-template-columns:1fr}header{align-items:flex-start}.pill{display:none}.big{font-size:27px}.card{padding:15px}.chart-wrap{height:190px}.rank-row{grid-template-columns:28px 1fr .9fr .8fr;font-size:12px}}
+</style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand"><div class="logo">₩</div><div><div class="eyebrow">CLUB PAPER TRADING</div><div class="title">동아리 모의주식 거래소</div></div></div>
-    <div class="top-actions"><button class="secondary" id="installBtn" hidden>앱 설치</button><button class="secondary" id="advanceBtn">하루 진행</button><button class="danger" id="resetBtn">초기화</button></div>
-  </header>
-  <main class="grid">
-    <section class="card summary">
-      <div class="eyebrow">MY PORTFOLIO</div><div class="muted">총자산</div><div class="big" id="totalAssets">₩1,000,000</div><div id="totalReturn" class="positive">+0.00%</div>
-      <div class="stats"><div class="stat"><span class="small">주문 가능 현금</span><strong id="cash">₩1,000,000</strong></div><div class="stat"><span class="small">주식 평가금</span><strong id="stockValue">₩0</strong></div><div class="stat"><span class="small">총 손익</span><strong id="profit">₩0</strong></div><div class="stat"><span class="small">거래 횟수</span><strong id="tradeCount">0회</strong></div></div>
+<header><div class="brand"><div class="logo">₩</div><div><div class="eyebrow">CLUB PAPER TRADING</div><h1>동아리 모의주식 거래소</h1></div></div><span class="pill">가상 주가 · 실제 돈 아님</span></header>
+<main>
+  <div class="grid">
+    <section class="card">
+      <div class="section-title"><span class="label">MY PORTFOLIO · 내 자산</span><button class="reset" id="resetBtn">내 기록 초기화</button></div>
+      <div class="field"><label for="memberName">회원 이름 / 별명</label><input id="memberName" maxlength="20" placeholder="예: 호범"></div>
+      <div class="label">총자산</div><div class="big" id="totalAsset">₩1,000,000</div><div id="returnPct" class="positive">+0.00%</div>
+      <div class="stats"><div class="stat"><span class="label">보유 현금</span><strong id="cash">₩1,000,000</strong></div><div class="stat"><span class="label">주식 평가금</span><strong id="stockValue">₩0</strong></div><div class="stat"><span class="label">평가 손익</span><strong id="profit">₩0</strong></div><div class="stat"><span class="label">보유 종목 수</span><strong id="holdingCount">0개</strong></div></div>
+      <p class="small" style="margin-top:13px">초기 자산은 회원별 100만 원입니다. 이름과 거래 기록은 이 기기의 브라우저에 저장됩니다.</p>
     </section>
-    <section class="card chart-card">
-      <div class="card-head"><h2>종목별 주가 차트</h2><span class="small">가상 데이터</span></div>
-      <div class="stock-picker" id="stockPicker"></div>
-      <div class="price-line"><span class="price" id="currentPrice">₩25,000</span><span id="dayChange" class="positive">+0.00%</span></div>
-      <div class="muted" id="stockName">새싹테크 · SEED</div>
-      <div class="chart-wrap" id="chart"></div>
-      <div class="chart-foot"><span id="chartStart">최근 기록</span><span id="chartEnd">현재</span></div>
+    <section class="card">
+      <div class="section-title"><h2>종목별 주가 차트</h2><span class="label">가상 데이터</span></div>
+      <div class="stocks" id="stockButtons"></div>
+      <div class="price-line"><span class="price" id="stockPrice">₩25,000</span><span id="changePct" class="positive">+0.00%</span></div>
+      <div class="label" id="stockSub">선택 종목</div>
+      <div class="chart-wrap"><canvas id="chart" aria-label="가상 주가 차트"></canvas></div>
+      <div class="chart-foot"><span>최근 기록</span><span>가상 주가가 주기적으로 변동합니다</span></div>
     </section>
-    <section class="card trade-card">
-      <div class="card-head"><h2>모의 거래</h2><span class="small">수수료 없음</span></div>
-      <div class="field"><label for="quantity">주문 수량</label><input id="quantity" type="number" min="1" step="1" value="1" inputmode="numeric"></div>
-      <div class="field"><label for="orderType">주문 방식</label><select id="orderType"><option value="market">현재가 주문</option></select></div>
-      <div class="trade-buttons"><button class="buy" id="buyBtn">매수하기</button><button class="sell" id="sellBtn">매도하기</button></div>
-      <div class="message" id="tradeMessage" role="status">종목을 선택하고 수량을 입력해.</div>
-      <div class="small">실제 돈이 아닌 연습용 가상 자산이야.</div>
-    </section>
-    <section class="card holdings-card">
-      <div class="card-head"><h2>보유 주식</h2><span class="small" id="holdingsCount">0종목</span></div>
-      <div class="table-wrap"><table><thead><tr><th>종목</th><th>수량</th><th>평균 매입가</th><th>현재가</th><th>평가 손익</th></tr></thead><tbody id="holdingsBody"></tbody></table></div>
-    </section>
-    <section class="card history-card">
-      <div class="card-head"><h2>최근 거래 내역</h2><span class="small" id="historyCount">0건</span></div>
-      <div class="history-list" id="historyList"></div>
-    </section>
-  </main>
-  <div class="footer">모의 투자 교육용 · 가상 주가와 가상 현금만 사용 · 데이터는 이 기기의 브라우저에 저장돼.</div>
-</div>
-<div class="toast" id="toast"></div>
+  </div>
+  <section class="card">
+    <div class="section-title"><h2>모의 거래</h2><span class="label">수수료 없음</span></div>
+    <div class="trade-grid">
+      <div><div class="label">매수</div><div class="field"><label for="buyQty">매수 수량</label><input id="buyQty" type="number" min="1" step="1" value="1" inputmode="numeric"></div><button class="buy wide" id="buyBtn">선택 종목 매수</button></div>
+      <div><div class="label">매도</div><div class="field"><label for="sellQty">매도 수량</label><input id="sellQty" type="number" min="1" step="1" value="1" inputmode="numeric"></div><button class="sell wide" id="sellBtn">선택 종목 매도</button></div>
+    </div><p id="tradeMessage" class="small" aria-live="polite" style="margin-top:12px">종목을 선택하고 가상 거래를 진행하세요.</p>
+  </section>
+  <div class="two-col">
+    <section class="card"><div class="section-title"><h2>보유 주식</h2><span class="label" id="holdingTotal">0종목</span></div><div id="holdings"></div></section>
+    <section class="card"><div class="section-title"><h2>거래 내역</h2><span class="label">최근 10건</span></div><div id="history"></div></section>
+  </div>
+  <section class="card"><div class="section-title"><h2>회원 수익률 순위</h2><span class="label">이 기기 기준</span></div><div id="ranking"></div><div class="notice" style="margin-top:12px">중요: 이 순위표는 현재 기기의 브라우저에 저장된 회원 기록만 보여 줍니다. 여러 패드에서 모든 회원의 순위를 공유하려면 별도 서버/데이터베이스가 필요합니다.</div></section>
+</main>
+<footer>교육용 가상 거래소입니다. 실제 주식 주문이나 실제 금융 거래는 발생하지 않습니다. 가상 가격은 데모용으로 자동 변동합니다.</footer>
 <script>
-(() => {
-  const START_CASH = 1000000;
-  const SEED = [
-    {id:"SEED",name:"새싹테크",price:25000,history:[23800,24100,23900,24500,24200,24800,25000]},
-    {id:"WAVE",name:"파도모빌리티",price:41800,history:[39000,39800,40500,40100,41200,40900,41800]},
-    {id:"MOON",name:"달빛바이오",price:12600,history:[13200,12800,13000,12400,12100,12300,12600]},
-    {id:"CLOUD",name:"구름게임즈",price:33700,history:[31000,31500,32200,31900,33000,32600,33700]}
-  ];
-  const $ = id => document.getElementById(id);
-  const money = n => "₩" + Math.round(n).toLocaleString("ko-KR");
-  const pct = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
-  const defaultState = () => ({cash:START_CASH,initialAssets:START_CASH,selected:"SEED",day:7,stocks:SEED.map(s=>({...s,history:[...s.history]})),holdings:{},trades:[]});
-  let state;
-  try { const saved = localStorage.getItem("clubExchangeStateV1"); state = saved ? JSON.parse(saved) : defaultState(); if(!state || !Array.isArray(state.stocks)) state=defaultState(); }
-  catch(e){ state=defaultState(); }
-  let deferredInstallPrompt = null;
-  function save(){ try{localStorage.setItem("clubExchangeStateV1",JSON.stringify(state));}catch(e){} }
-  function selectedStock(){ return state.stocks.find(s=>s.id===state.selected) || state.stocks[0]; }
-  function holdings(id){ return state.holdings[id] || {qty:0,avg:0}; }
-  function stockValue(){return state.stocks.reduce((sum,s)=>sum+holdings(s.id).qty*s.price,0);}
-  function totalAssets(){return state.cash+stockValue();}
-  function showToast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.style.display="none",2400);}
-  function drawChart(stock){
-    const vals=stock.history.slice(-30); const w=700,h=220,pad=18;
-    const min=Math.min(...vals)*.985,max=Math.max(...vals)*1.015,range=(max-min)||1;
-    const pts=vals.map((v,i)=>({x:pad+i*(w-pad*2)/Math.max(vals.length-1,1),y:h-pad-(v-min)/range*(h-pad*2)}));
-    const line=pts.map((p,i)=>(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ");
-    const fill=line+` L ${pts[pts.length-1].x} ${h-pad} L ${pts[0].x} ${h-pad} Z`;
-    const change=vals.length>1?(vals[vals.length-1]-vals[vals.length-2])/vals[vals.length-2]*100:0;
-    const color=change>=0?"#52d6a0":"#ff7885";
-    const grid=[.25,.5,.75].map(q=>`<line x1="${pad}" y1="${(h-pad)-q*(h-pad*2)}" x2="${w-pad}" y2="${(h-pad)-q*(h-pad*2)}" stroke="#2a3a54" stroke-dasharray="4 6"/>`).join("");
-    $("chart").innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${stock.name} 가상 주가 차트"><defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".24"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${fill}" fill="url(#chartFill)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>${pts.length?`<circle cx="${pts[pts.length-1].x}" cy="${pts[pts.length-1].y}" r="5" fill="${color}" stroke="#101827" stroke-width="3"/>`:""}</svg>`;
-    $("currentPrice").textContent=money(stock.price);
-    $("dayChange").textContent=pct(change); $("dayChange").className=change>=0?"positive":"negative";
-    $("stockName").textContent=stock.name+" · "+stock.id;
-    $("chartStart").textContent=`기록 ${Math.max(1,state.day-vals.length+1)}일차`; $("chartEnd").textContent=`${state.day}일차`;
-  }
-  function render(){
-    const total=totalAssets(), pnl=total-state.initialAssets, ret=pnl/state.initialAssets*100;
-    $("totalAssets").textContent=money(total); $("cash").textContent=money(state.cash); $("stockValue").textContent=money(stockValue());
-    $("profit").textContent=money(pnl); $("profit").className=pnl>=0?"positive":"negative";
-    $("totalReturn").textContent=pct(ret); $("totalReturn").className=ret>=0?"positive":"negative";
-    $("tradeCount").textContent=state.trades.length+"회";
-    $("stockPicker").innerHTML=state.stocks.map(s=>`<button class="stock-chip ${s.id===state.selected?"active":""}" data-stock="${s.id}">${s.name}</button>`).join("");
-    $("stockPicker").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{state.selected=b.dataset.stock;save();render();}));
-    drawChart(selectedStock());
-    const rows=state.stocks.filter(s=>holdings(s.id).qty>0).map(s=>{const h=holdings(s.id),value=h.qty*s.price,pl=(s.price-h.avg)*h.qty;return `<tr><td><strong>${s.name}</strong><br><span class="small">${s.id}</span></td><td>${h.qty.toLocaleString()}</td><td>${money(h.avg)}</td><td>${money(s.price)}</td><td class="${pl>=0?"positive":"negative"}">${money(pl)}</td></tr>`;}).join("");
-    $("holdingsBody").innerHTML=rows||'<tr><td colspan="5" class="empty">아직 보유한 주식이 없어. 종목을 매수해 봐!</td></tr>';
-    $("holdingsCount").textContent=state.stocks.filter(s=>holdings(s.id).qty>0).length+"종목";
-    $("historyCount").textContent=state.trades.length+"건";
-    $("historyList").innerHTML=state.trades.slice(0,20).map(t=>`<div class="history-item"><div><strong>${t.type==="buy"?"매수":"매도"} · ${t.name}</strong><span>${t.day}일차 · ${t.qty}주 × ${money(t.price)}</span></div><strong class="${t.type==="buy"?"":"positive"}">${t.type==="buy"?"−":"+"}${money(t.qty*t.price)}</strong></div>`).join("")||'<div class="empty">거래 내역이 여기에 표시돼.</div>';
-  }
-  function transact(type){
-    const stock=selectedStock(), qty=Number($("quantity").value);
-    if(!Number.isInteger(qty)||qty<1){$("tradeMessage").textContent="수량은 1주 이상의 정수로 입력해.";return;}
-    const h=holdings(stock.id), amount=qty*stock.price;
-    if(type==="buy"){
-      if(amount>state.cash){$("tradeMessage").textContent="현금이 부족해. 수량을 줄여 봐.";return;}
-      const newQty=h.qty+qty; state.holdings[stock.id]={qty:newQty,avg:(h.qty*h.avg+amount)/newQty}; state.cash-=amount;
-    }else{
-      if(qty>h.qty){$("tradeMessage").textContent="보유 수량보다 많이 매도할 수 없어.";return;}
-      state.cash+=amount; const newQty=h.qty-qty;
-      if(newQty===0) delete state.holdings[stock.id]; else state.holdings[stock.id]={qty:newQty,avg:h.avg};
-    }
-    state.trades.unshift({type,id:stock.id,name:stock.name,qty,price:stock.price,day:state.day,at:Date.now()});
-    $("tradeMessage").textContent=`${stock.name} ${qty}주 ${type==="buy"?"매수":"매도"} 완료!`;
-    save();render();showToast("모의 거래가 반영됐어.");
-  }
-  function advanceDay(){
-    state.day++;
-    state.stocks.forEach(s=>{
-      const old=s.price, drift=(Math.random()-.48)*.08;
-      s.price=Math.max(500,Math.round(old*(1+drift)/100)*100);
-      s.history.push(s.price); if(s.history.length>30)s.history.shift();
-    });
-    save();render();showToast(`${state.day}일차로 진행했어. 가상 주가가 갱신됐어.`);
-  }
-  $("buyBtn").addEventListener("click",()=>transact("buy"));
-  $("sellBtn").addEventListener("click",()=>transact("sell"));
-  $("advanceBtn").addEventListener("click",advanceDay);
-  $("resetBtn").addEventListener("click",()=>{if(confirm("가상 현금, 보유 주식, 거래 내역을 모두 초기화할까?")){state=defaultState();save();render();showToast("초기화했어.");}});
-  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;$("installBtn").hidden=false;});
-  $("installBtn").addEventListener("click",async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;$("installBtn").hidden=true;});
-  if("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-  render();
-})();
+const INITIAL_CASH=1000000;
+const STOCKS=[
+ {id:"hb",name:"호범바이오",ticker:"HBB",base:25000,color:"#38e0b2"},
+ {id:"sh",name:"성환주식",ticker:"SHS",base:18000,color:"#6e9eff"},
+ {id:"ss",name:"성식전자",ticker:"SSE",base:42000,color:"#b69cff"},
+ {id:"og",name:"옥겸식품",ticker:"OGF",base:12500,color:"#ffc56e"},
+ {id:"ea",name:"은아유통",ticker:"EAD",base:31000,color:"#ff8ea1"}
+];
+const $=id=>document.getElementById(id);
+let selected=STOCKS[0].id;
+let prices={}, series={}, users={}, currentName="";
+function initialSeries(base){let arr=[];let p=base;for(let i=0;i<18;i++){p=Math.max(500,Math.round(p*(1+(Math.random()-.46)*.035)/100)*100);arr.push(p)}return arr}
+function load(){try{const raw=JSON.parse(localStorage.getItem("clubExchangeV2")||"{}");users=raw.users||{};prices=raw.prices||{};series=raw.series||{};currentName=raw.currentName||""}catch(e){users={};prices={};series={};currentName=""}
+STOCKS.forEach(s=>{if(!Array.isArray(series[s.id])||series[s.id].length<2)series[s.id]=initialSeries(s.base);if(!prices[s.id])prices[s.id]=series[s.id][series[s.id].length-1]});
+if(!currentName)currentName="회원1";$("memberName").value=currentName;ensureUser(currentName);save()}
+function ensureUser(name){name=(name||"회원1").trim().slice(0,20)||"회원1";if(!users[name])users[name]={cash:INITIAL_CASH,holdings:{},history:[],starting:INITIAL_CASH};currentName=name;return users[name]}
+function user(){return ensureUser(currentName)}
+function save(){localStorage.setItem("clubExchangeV2",JSON.stringify({users,prices,series,currentName}))}
+function won(n){return "₩"+Math.round(n).toLocaleString("ko-KR")}
+function asset(u){return u.cash+Object.entries(u.holdings).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0)}
+function renderButtons(){$("stockButtons").innerHTML=STOCKS.map(s=>`<button class="stock-btn ${s.id===selected?"active":""}" data-id="${s.id}">${s.name}</button>`).join("");document.querySelectorAll(".stock-btn").forEach(b=>b.onclick=()=>{selected=b.dataset.id;render()})}
+function drawChart(){const canvas=$("chart"),ctx=canvas.getContext("2d"),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;canvas.width=Math.max(1,rect.width*dpr);canvas.height=Math.max(1,rect.height*dpr);ctx.scale(dpr,dpr);const w=rect.width,h=rect.height;ctx.clearRect(0,0,w,h);const vals=series[selected]||[];if(vals.length<2)return;let min=Math.min(...vals)*.985,max=Math.max(...vals)*1.015;if(min===max)max=min+1;const pad={l:8,r:8,t:14,b:15};ctx.strokeStyle="#26364e";ctx.lineWidth=1;for(let i=0;i<4;i++){let y=pad.t+(h-pad.t-pad.b)*i/3;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke()}const pts=vals.map((v,i)=>({x:pad.l+i*(w-pad.l-pad.r)/(vals.length-1),y:pad.t+(max-v)/(max-min)*(h-pad.t-pad.b)}));const s=STOCKS.find(x=>x.id===selected);let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,s.color+"55");grad.addColorStop(1,s.color+"00");ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,h-pad.b);ctx.lineTo(pts[0].x,h-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=s.color;ctx.lineWidth=2.5;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();const last=pts[pts.length-1];ctx.beginPath();ctx.arc(last.x,last.y,3.5,0,Math.PI*2);ctx.fillStyle=s.color;ctx.fill()}
+function render(){const u=user(),s=STOCKS.find(x=>x.id===selected),p=prices[selected],prev=series[selected][series[selected].length-2]||p,change=(p-prev)/prev*100,stockValue=Object.entries(u.holdings).reduce((sum,[id,q])=>sum+(prices[id]||0)*q,0),total=asset(u),profit=total-INITIAL_CASH;
+renderButtons();$("totalAsset").textContent=won(total);$("cash").textContent=won(u.cash);$("stockValue").textContent=won(stockValue);$("profit").textContent=(profit>0?"+":"")+won(profit);$("profit").className=profit>=0?"positive":"negative";$("returnPct").textContent=(profit>=0?"+":"")+(profit/INITIAL_CASH*100).toFixed(2)+"%";$("returnPct").className=profit>=0?"positive":"negative";$("holdingCount").textContent=Object.values(u.holdings).filter(q=>q>0).length+"개";$("stockPrice").textContent=won(p);$("changePct").textContent=(change>=0?"+":"")+change.toFixed(2)+"%";$("changePct").className=change>=0?"positive":"negative";$("stockSub").textContent=s.name+" · "+s.ticker;
+const held=STOCKS.filter(x=>(u.holdings[x.id]||0)>0);$("holdingTotal").textContent=held.length+"종목";$("holdings").innerHTML=held.length?held.map(x=>`<div class="holding-row"><strong>${x.name}</strong><span>${u.holdings[x.id]}주</span><span>${won(u.holdings[x.id]*prices[x.id])}</span></div>`).join():'<div class="empty">보유 주식이 없습니다.</div>';
+$("history").innerHTML=u.history.length?u.history.slice(0,10).map(h=>`<div class="history-row"><span>${h.name}</span><span class="${h.type==="매수"?"negative":"positive"}">${h.type} ${h.qty}주</span><span>${won(h.price*h.qty)}</span></div>`).join():'<div class="empty">아직 거래 내역이 없습니다.</div>';
+const ranking=Object.entries(users).map(([name,x])=>({name,total:asset(x),profit:asset(x)-INITIAL_CASH,ret:(asset(x)-INITIAL_CASH)/INITIAL_CASH*100})).sort((a,b)=>b.total-a.total);
+$("ranking").innerHTML=ranking.length?ranking.map((x,i)=>`<div class="rank-row"><span class="rank-num">${i+1}</span><strong>${escapeHtml(x.name)}${x.name===currentName?' <span class="positive">(나)</span>':''}</strong><span>${won(x.total)}</span><span class="${x.profit>=0?"positive":"negative"}">${x.ret>=0?"+":""}${x.ret.toFixed(2)}%</span></div>`).join():'<div class="empty">회원 기록이 없습니다.</div>';
+drawChart();save()}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function trade(type){const qty=Number($(type==="매수"?"buyQty":"sellQty").value);if(!Number.isInteger(qty)||qty<1){$("tradeMessage").textContent="수량은 1주 이상의 정수로 입력해 주세요.";return}const u=user(),p=prices[selected],s=STOCKS.find(x=>x.id===selected);if(type==="매수"){if(qty*p>u.cash){$("tradeMessage").textContent="보유 현금이 부족합니다.";return}u.cash-=qty*p;u.holdings[selected]=(u.holdings[selected]||0)+qty}else{if((u.holdings[selected]||0)<qty){$("tradeMessage").textContent="매도할 주식 수량이 부족합니다.";return}u.holdings[selected]-=qty;u.cash+=qty*p}u.history.unshift({type,qty,price:p,name:s.name,time:Date.now()});u.history=u.history.slice(0,50);$("tradeMessage").textContent=`${s.name} ${qty}주 ${type} 완료 · ${won(qty*p)}`;render()}
+$("memberName").addEventListener("change",e=>{currentName=(e.target.value||"회원1").trim().slice(0,20)||"회원1";ensureUser(currentName);render()});
+$("buyBtn").onclick=()=>trade("매수");$("sellBtn").onclick=()=>trade("매도");
+$("resetBtn").onclick=()=>{if(confirm("현재 브라우저에 저장된 모든 회원·거래 기록과 가상 주가 기록을 초기화할까요?")){localStorage.removeItem("clubExchangeV2");users={};prices={};series={};currentName=$("memberName").value.trim()||"회원1";load();render();$("tradeMessage").textContent="기록을 초기화했습니다."}};
+function tick(){STOCKS.forEach(s=>{let old=prices[s.id]||s.base,move=(Math.random()-.49)*.025;let next=Math.max(500,Math.round(old*(1+move)/100)*100);prices[s.id]=next;series[s.id].push(next);if(series[s.id].length>24)series[s.id].shift()});render()}
+load();render();setInterval(tick,12000);window.addEventListener("resize",drawChart);
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script>
-</body>
-</html>
+</body></html>
