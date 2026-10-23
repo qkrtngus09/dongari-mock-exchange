@@ -83,7 +83,7 @@ $("memberName").addEventListener("change",e=>{currentName=(e.target.value||"회�
 $("buyBtn").onclick=()=>trade("매수");$("sellBtn").onclick=()=>trade("매도");
 $("resetBtn").onclick=()=>{if(confirm("현재 브라우저에 저장된 모든 회원·거래 기록과 가상 주가 기록을 초기화할까요?")){localStorage.removeItem("clubExchangeV2");users={};prices={};series={};currentName=$("memberName").value.trim()||"회원1";load();render();$("tradeMessage").textContent="기록을 초기화했습니다."}};
 function tick(){STOCKS.forEach(s=>{let old=prices[s.id]||s.base,move=(Math.random()-.49)*.025;let next=Math.max(500,Math.round(old*(1+move)/100)*100);prices[s.id]=next;series[s.id].push(next);if(series[s.id].length>24)series[s.id].shift()});render()}
-load();render();setInterval(tick,12000);window.addEventListener("resize",drawChart);
+load();render();setInterval(tick,8000);window.addEventListener("resize",drawChart);
 if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script>
 </body></html>
