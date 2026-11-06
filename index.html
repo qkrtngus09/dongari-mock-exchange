@@ -13,7 +13,13 @@
 .tabs{display:flex;gap:8px;margin:14px 0 4px}.tab{flex:1;background:#0d1727;color:#bac8dc;border:1px solid var(--line)}.tab.active{background:#163c3b;border-color:var(--green);color:#eafff8}
 .err{color:var(--red);font-size:12px;min-height:18px;margin-top:8px}
 .hidden{display:none!important}
-@media(max-width:720px){.grid,.trade-grid,.two-col{grid-template-columns:1fr}header{align-items:flex-start}.pill{display:none}.big{font-size:27px}.card{padding:15px}.chart-wrap{height:190px}.rank-row{grid-template-columns:28px 1fr .9fr .8fr;font-size:12px}}
+.adm-row{display:grid;grid-template-columns:1.2fr .8fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.adm-row input{padding:9px;font-size:13px}
+.adm-btn{padding:9px 11px;font-size:12px;background:#22324b;color:var(--text)}
+.adm-del{background:var(--red);color:#2b0810}
+.adm-add{display:grid;grid-template-columns:1.2fr .8fr .8fr auto;gap:8px;margin-top:14px}
+.danger{background:var(--red);color:#2b0810}
+@media(max-width:720px){.grid,.trade-grid,.two-col{grid-template-columns:1fr}header{align-items:flex-start}.pill{display:none}.big{font-size:27px}.card{padding:15px}.chart-wrap{height:190px}.rank-row{grid-template-columns:28px 1fr .9fr .8fr;font-size:12px}.adm-row,.adm-add{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -41,7 +47,7 @@
     <section class="card">
       <div class="section-title"><h2>종목별 주가 차트</h2><span class="label">가상 데이터</span></div>
       <div class="stocks" id="stockButtons"></div>
-      <div class="price-line"><span class="price" id="stockPrice">₩25,000</span><span id="changePct" class="positive">+0.00%</span></div>
+      <div class="price-line"><span class="price" id="stockPrice">₩0</span><span id="changePct" class="positive">+0.00%</span></div>
       <div class="label" id="stockSub">선택 종목</div>
       <div class="chart-wrap"><canvas id="chart" aria-label="가상 주가 차트"></canvas></div>
       <div class="chart-foot"><span>최근 10분</span><span>모든 기기에서 같은 가격</span></div>
@@ -59,25 +65,39 @@
     <section class="card"><div class="section-title"><h2>거래 내역</h2><span class="label">최근 10건</span></div><div id="history"></div></section>
   </div>
   <section class="card"><div class="section-title"><h2>회원 수익률 순위</h2><span class="label">전체 회원 기준</span></div><div id="ranking"></div></section>
+
+  <section class="card hidden" id="adminCard">
+    <div class="section-title"><h2>운영자 패널</h2><span class="label">운영자 전용</span></div>
+    <div class="label">종목 관리 (이름 · 기준가 수정 후 저장)</div>
+    <div id="adminStocks"></div>
+    <div class="label" style="margin-top:16px">새 종목 추가</div>
+    <div class="adm-add">
+      <input id="addName" maxlength="12" placeholder="종목명">
+      <input id="addTicker" maxlength="6" placeholder="코드(예: ABC)">
+      <input id="addBase" type="number" inputmode="numeric" placeholder="기준가">
+      <button class="adm-btn buy" id="addBtn">추가</button>
+    </div>
+    <p id="adminMsg" class="small" style="margin-top:10px"></p>
+    <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
+      <div class="label">전체 기록 리셋</div>
+      <p class="small">모든 회원의 현금을 100만 원으로 되돌리고 보유 주식과 거래 내역을 지웁니다. 계정(닉네임, PIN)은 유지됩니다.</p>
+      <button class="danger wide" id="resetAllBtn">전체 기록 리셋</button>
+    </div>
+  </section>
 </main>
 <footer>교육용 가상 거래소입니다. 실제 주식 주문이나 실제 금융 거래는 발생하지 않습니다.</footer>
-<script>
+<!-- ===== 2부는 여기에 이어서 ===== -->
+  <script>
 const API="https://pkxzsvqceajyopzxovae.supabase.co/functions/v1/pin-login";
 const INITIAL_CASH=1000000;
-const STOCKS=[
- {id:"hb",name:"호범바이오",ticker:"HBB",base:25000,color:"#38e0b2"},
- {id:"sh",name:"성환주식",ticker:"SHS",base:18000,color:"#6e9eff"},
- {id:"ss",name:"성식전자",ticker:"SSE",base:42000,color:"#b69cff"},
- {id:"og",name:"옥겸식품",ticker:"OGF",base:12500,color:"#ffc56e"},
- {id:"ea",name:"은아유통",ticker:"EAD",base:31000,color:"#ff8ea1"}
-];
 const $=id=>document.getElementById(id);
-let selected=STOCKS[0].id, token="", nickname="", account={cash:INITIAL_CASH,holdings:{},trades:[]}, rankingData=[], offset=0, mode="login", busy=false;
+let STOCKS=[], selected="", token="", nickname="", isAdmin=false, account={cash:INITIAL_CASH,holdings:{},trades:[]}, rankingData=[], offset=0, mode="login", busy=false;
 
 function noise(k,b){let h=Math.imul(b^(k*7919),2654435761);h^=h>>>15;h=Math.imul(h,2246822519);h^=h>>>13;return(((h>>>0)%2001)-1000)/1000}
-function priceAt(k,tMs){const t=tMs/1000,b=Math.floor(tMs/8000);const v=1+0.10*Math.sin(t/(600+k*130)+k*1.7)+0.06*Math.sin(t/(170+k*41)+k*0.9)+0.03*Math.sin(t/(37+k*7)+k*2.3)+0.012*noise(k,b);return Math.max(500,Math.round((STOCKS[k].base*v)/100)*100)}
+function priceAt(s,tMs){const k=s.seed,t=tMs/1000,b=Math.floor(tMs/8000);const v=1+0.10*Math.sin(t/(600+k*130)+k*1.7)+0.06*Math.sin(t/(170+k*41)+k*0.9)+0.03*Math.sin(t/(37+k*7)+k*2.3)+0.012*noise(k,b);return Math.max(500,Math.round((s.base*v)/100)*100)}
 const now=()=>Date.now()+offset;
-const priceOf=id=>priceAt(STOCKS.findIndex(s=>s.id===id),now());
+const findStock=id=>STOCKS.find(s=>s.id===id);
+const priceOf=id=>{const s=findStock(id);return s?priceAt(s,now()):0};
 function won(n){return "₩"+Math.round(n).toLocaleString("ko-KR")}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
@@ -87,6 +107,11 @@ async function api(body){
   if(d.serverTime)offset=d.serverTime-Date.now();
   if(!r.ok)throw Object.assign(new Error(d.error||"서버 오류"),{status:r.status});
   return d;
+}
+function applyStocks(list){
+  if(!Array.isArray(list))return;
+  STOCKS=list;
+  if(!findStock(selected))selected=STOCKS[0]?STOCKS[0].id:"";
 }
 
 function setMode(m){mode=m;$("tabLogin").classList.toggle("active",m==="login");$("tabSignup").classList.toggle("active",m==="signup");$("authBtn").textContent=m==="login"?"로그인":"회원가입";$("authErr").textContent=""}
@@ -100,7 +125,7 @@ async function doAuth(){
   busy=true;$("authBtn").textContent="처리 중...";$("authErr").textContent="";
   try{
     const d=await api({action:mode,nickname:nick,pin});
-    token=d.token;nickname=d.nickname;account=d.account;
+    token=d.token;nickname=d.nickname;account=d.account;isAdmin=!!d.isAdmin;applyStocks(d.stocks);
     try{localStorage.setItem("clubToken",token)}catch(e){}
     $("pin").value="";enter();
   }catch(e){$("authErr").textContent=e.message}
@@ -109,14 +134,15 @@ async function doAuth(){
 $("authBtn").onclick=doAuth;
 $("pin").addEventListener("keydown",e=>{if(e.key==="Enter")doAuth()});
 
-function enter(){$("loginWrap").classList.add("hidden");$("nickShow").textContent=nickname;render();loadRanking()}
-function logout(){token="";nickname="";try{localStorage.removeItem("clubToken")}catch(e){}$("loginWrap").classList.remove("hidden");setMode("login")}
+function enter(){$("loginWrap").classList.add("hidden");$("nickShow").textContent=nickname;$("adminCard").classList.toggle("hidden",!isAdmin);render();renderAdmin();loadRanking()}
+function logout(){token="";nickname="";isAdmin=false;try{localStorage.removeItem("clubToken")}catch(e){}$("loginWrap").classList.remove("hidden");setMode("login")}
 $("logoutBtn").onclick=logout;
 
 async function loadRanking(){try{const d=await api({action:"ranking"});rankingData=d.ranking||[];renderRanking()}catch(e){}}
+async function refreshStocks(){try{const d=await api({action:"stocks"});const before=JSON.stringify(STOCKS);applyStocks(d.stocks);if(JSON.stringify(STOCKS)!==before){render();renderAdmin()}}catch(e){}}
 
 async function trade(type){
-  if(busy||!token)return;
+  if(busy||!token||!selected)return;
   const qty=Number($(type==="buy"?"buyQty":"sellQty").value);
   if(!Number.isInteger(qty)||qty<1){$("tradeMessage").textContent="수량은 1주 이상의 정수로 입력해 주세요.";return}
   busy=true;$("tradeMessage").textContent="거래 처리 중...";
@@ -133,23 +159,23 @@ async function trade(type){
 }
 $("buyBtn").onclick=()=>trade("buy");$("sellBtn").onclick=()=>trade("sell");
 
-function renderButtons(){$("stockButtons").innerHTML=STOCKS.map(s=>`<button class="stock-btn ${s.id===selected?"active":""}" data-id="${s.id}">${s.name}</button>`).join("");document.querySelectorAll(".stock-btn").forEach(b=>b.onclick=()=>{selected=b.dataset.id;render()})}
-
-function getSeries(k){const t=now(),arr=[];for(let i=30;i>=0;i--)arr.push(priceAt(k,t-i*20000));return arr}
+function renderButtons(){$("stockButtons").innerHTML=STOCKS.map(s=>`<button class="stock-btn ${s.id===selected?"active":""}" data-id="${s.id}">${escapeHtml(s.name)}</button>`).join("");document.querySelectorAll(".stock-btn").forEach(b=>b.onclick=()=>{selected=b.dataset.id;render()})}
+function getSeries(s){const t=now(),arr=[];for(let i=30;i>=0;i--)arr.push(priceAt(s,t-i*20000));return arr}
 
 function drawChart(){
+  const s=findStock(selected);if(!s)return;
   const canvas=$("chart"),ctx=canvas.getContext("2d"),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
   canvas.width=Math.max(1,rect.width*dpr);canvas.height=Math.max(1,rect.height*dpr);ctx.scale(dpr,dpr);
   const w=rect.width,h=rect.height;ctx.clearRect(0,0,w,h);
-  const k=STOCKS.findIndex(x=>x.id===selected),vals=getSeries(k);
+  const vals=getSeries(s);
   let min=Math.min(...vals)*.985,max=Math.max(...vals)*1.015;if(min===max)max=min+1;
   const pad={l:8,r:8,t:14,b:15};ctx.strokeStyle="#26364e";ctx.lineWidth=1;
   for(let i=0;i<4;i++){let y=pad.t+(h-pad.t-pad.b)*i/3;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke()}
   const pts=vals.map((v,i)=>({x:pad.l+i*(w-pad.l-pad.r)/(vals.length-1),y:pad.t+(max-v)/(max-min)*(h-pad.t-pad.b)}));
-  const s=STOCKS[k];let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,s.color+"55");grad.addColorStop(1,s.color+"00");
+  const col=s.color||"#38e0b2";let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,col+"55");grad.addColorStop(1,col+"00");
   ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,h-pad.b);ctx.lineTo(pts[0].x,h-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=s.color;ctx.lineWidth=2.5;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();
-  const last=pts[pts.length-1];ctx.beginPath();ctx.arc(last.x,last.y,3.5,0,Math.PI*2);ctx.fillStyle=s.color;ctx.fill();
+  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();
+  const last=pts[pts.length-1];ctx.beginPath();ctx.arc(last.x,last.y,3.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
 }
 
 function renderRanking(){
@@ -157,33 +183,75 @@ function renderRanking(){
 }
 
 function render(){
-  const k=STOCKS.findIndex(x=>x.id===selected),s=STOCKS[k],p=priceAt(k,now()),ser=getSeries(k),prev=ser[ser.length-2]||p,change=(p-prev)/prev*100;
   const holdings=account.holdings||{};
   const stockValue=Object.entries(holdings).reduce((sum,[id,q])=>sum+priceOf(id)*q,0),total=account.cash+stockValue,profit=total-INITIAL_CASH;
   renderButtons();
   $("totalAsset").textContent=won(total);$("cash").textContent=won(account.cash);$("stockValue").textContent=won(stockValue);
   $("profit").textContent=(profit>0?"+":"")+won(profit);$("profit").className=profit>=0?"positive":"negative";
   $("returnPct").textContent=(profit>=0?"+":"")+(profit/INITIAL_CASH*100).toFixed(2)+"%";$("returnPct").className=profit>=0?"positive":"negative";
-  $("holdingCount").textContent=Object.values(holdings).filter(q=>q>0).length+"개";
-  $("stockPrice").textContent=won(p);$("changePct").textContent=(change>=0?"+":"")+change.toFixed(2)+"%";$("changePct").className=change>=0?"positive":"negative";$("stockSub").textContent=s.name+" · "+s.ticker;
   const held=STOCKS.filter(x=>(holdings[x.id]||0)>0);
+  $("holdingCount").textContent=held.length+"개";
+  const s=findStock(selected);
+  if(s){
+    const p=priceAt(s,now()),ser=getSeries(s),prev=ser[ser.length-2]||p,change=(p-prev)/prev*100;
+    $("stockPrice").textContent=won(p);$("changePct").textContent=(change>=0?"+":"")+change.toFixed(2)+"%";$("changePct").className=change>=0?"positive":"negative";$("stockSub").textContent=s.name+" · "+(s.ticker||"");
+  }else{$("stockPrice").textContent="-";$("stockSub").textContent="종목이 없습니다"}
   $("holdingTotal").textContent=held.length+"종목";
-  $("holdings").innerHTML=held.length?held.map(x=>`<div class="holding-row"><strong>${x.name}</strong><span>${holdings[x.id]}주</span><span>${won(holdings[x.id]*priceOf(x.id))}</span></div>`).join(""):'<div class="empty">보유 주식이 없습니다.</div>';
+  $("holdings").innerHTML=held.length?held.map(x=>`<div class="holding-row"><strong>${escapeHtml(x.name)}</strong><span>${holdings[x.id]}주</span><span>${won(holdings[x.id]*priceOf(x.id))}</span></div>`).join(""):'<div class="empty">보유 주식이 없습니다.</div>';
   const tr=account.trades||[];
   $("history").innerHTML=tr.length?tr.slice(0,10).map(h=>`<div class="history-row"><span>${escapeHtml(h.name)}</span><span class="${h.type==="매수"?"negative":"positive"}">${h.type} ${h.qty}주</span><span>${won(h.price*h.qty)}</span></div>`).join(""):'<div class="empty">아직 거래 내역이 없습니다.</div>';
   renderRanking();drawChart();
 }
 
+// ---------- 운영자 ----------
+function adminMsg(t){$("adminMsg").textContent=t}
+function renderAdmin(){
+  if(!isAdmin)return;
+  $("adminStocks").innerHTML=STOCKS.map(s=>`<div class="adm-row" data-id="${s.id}"><input class="a-name" maxlength="12" value="${escapeHtml(s.name)}"><input class="a-base" type="number" inputmode="numeric" value="${s.base}"><button class="adm-btn a-save">저장</button><button class="adm-btn adm-del a-del">삭제</button></div>`).join("");
+  document.querySelectorAll("#adminStocks .adm-row").forEach(row=>{
+    const id=row.dataset.id;
+    row.querySelector(".a-save").onclick=()=>adminCall({action:"admin_stock_update",stockId:id,name:row.querySelector(".a-name").value,base:row.querySelector(".a-base").value},"저장했습니다.");
+    row.querySelector(".a-del").onclick=()=>{const s=findStock(id);if(confirm(`'${s?s.name:""}' 종목을 삭제할까요?\n보유 중인 회원에게는 현재 가격으로 현금 정산됩니다.`))adminCall({action:"admin_stock_delete",stockId:id},"삭제했습니다.")};
+  });
+}
+async function adminCall(payload,okMsg){
+  if(busy)return;busy=true;adminMsg("처리 중...");
+  try{
+    const d=await api({...payload,token});
+    if(d.stocks)applyStocks(d.stocks);
+    adminMsg(okMsg);render();renderAdmin();loadRanking();
+  }catch(e){
+    if(e.status===401){logout();$("authErr").textContent="다시 로그인해 주세요."}else adminMsg(e.message);
+  }
+  busy=false;
+}
+$("addBtn").onclick=()=>{
+  adminCall({action:"admin_stock_add",name:$("addName").value,ticker:$("addTicker").value,base:$("addBase").value},"추가했습니다.");
+  $("addName").value="";$("addTicker").value="";$("addBase").value="";
+};
+$("resetAllBtn").onclick=async()=>{
+  if(!confirm("정말 전체 기록을 리셋할까요?\n모든 회원의 현금이 100만 원으로 돌아가고 보유 주식과 거래 내역이 삭제됩니다."))return;
+  if(!confirm("마지막 확인입니다. 되돌릴 수 없어요. 진행할까요?"))return;
+  if(busy)return;busy=true;adminMsg("리셋 중...");
+  try{
+    await api({action:"admin_reset",token});
+    const d=await api({action:"me",token});account=d.account;
+    adminMsg("전체 기록을 리셋했습니다.");render();loadRanking();
+  }catch(e){adminMsg(e.message)}
+  busy=false;
+};
+
 async function init(){
   try{await api({action:"ping"})}catch(e){}
   let saved="";try{saved=localStorage.getItem("clubToken")||""}catch(e){}
   if(saved){
-    try{const d=await api({action:"me",token:saved});token=saved;nickname=d.nickname;account=d.account;enter()}
+    try{const d=await api({action:"me",token:saved});token=saved;nickname=d.nickname;account=d.account;isAdmin=!!d.isAdmin;applyStocks(d.stocks);enter()}
     catch(e){try{localStorage.removeItem("clubToken")}catch(_){}}
   }
 }
 setInterval(()=>{if(token)render()},3000);
 setInterval(()=>{if(token)loadRanking()},15000);
+setInterval(()=>{if(token)refreshStocks()},20000);
 window.addEventListener("resize",()=>{if(token)drawChart()});
 init();
 </script>
